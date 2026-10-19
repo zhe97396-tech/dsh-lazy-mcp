@@ -129,13 +129,19 @@ const baseServer = (name, lifecycle, extra = {}) => ({
   ...extra,
 })
 
+// CI runners (especially Windows) download the reference server on first use.
+// The plugin default connect timeout (30 s) is tight for a cold `npx` start
+// there, so the harness gives connections a generous budget.
+const CONNECT_BUDGET_MS = 120_000
+const applyConfig = (ctx, config) => apply(ctx, { connectTimeoutMs: CONNECT_BUDGET_MS, ...config })
+
 const scratch = await mkdtemp(join(tmpdir(), 'lazy-mcp-verify-'))
 
 // ── S1: zero servers ────────────────────────────────────────────────────────
 console.log('\nS1  zero servers: activation succeeds and reports the empty state')
 {
   const { ctx, tools, disposeAll } = makeCtx()
-  await apply(ctx, { servers: [] })
+  await applyConfig(ctx, { servers: [] })
   const text = await callTool(tools, 'mcp_servers', {})
   check('five tools registered', tools.size === 5, `got ${tools.size}`)
   check(
@@ -152,7 +158,7 @@ console.log('\nS2  lazy lifecycle + metadata cache (idle window 6000 ms)')
 {
   const cachePath = join(scratch, 's2-cache.json')
   const { ctx, tools, disposeAll } = makeCtx()
-  await apply(ctx, {
+  await applyConfig(ctx, {
     idleDisconnectMs: 6000,
     cachePath,
     servers: [baseServer('s2', 'lazy')],
@@ -203,7 +209,7 @@ console.log('\nS2  lazy lifecycle + metadata cache (idle window 6000 ms)')
 console.log('\nS3  lazy-keep-alive: connects on use, then never idle-closes')
 {
   const { ctx, tools, disposeAll } = makeCtx()
-  await apply(ctx, {
+  await applyConfig(ctx, {
     idleDisconnectMs: 6000,
     cachePath: join(scratch, 's3-cache.json'),
     servers: [baseServer('s3', 'lazy-keep-alive')],
@@ -227,7 +233,7 @@ console.log('\nS4  eager: begins connecting at activation without blocking it')
 {
   const { ctx, tools, disposeAll } = makeCtx()
   const started = Date.now()
-  await apply(ctx, {
+  await applyConfig(ctx, {
     idleDisconnectMs: 6000,
     cachePath: join(scratch, 's4-cache.json'),
     servers: [baseServer('s4', 'eager')],
@@ -253,7 +259,7 @@ console.log('\nS4  eager: begins connecting at activation without blocking it')
 console.log('\nS5-S7  delivery classes (callTimeoutMs 2000)')
 {
   const { ctx, tools, disposeAll } = makeCtx()
-  await apply(ctx, {
+  await applyConfig(ctx, {
     idleDisconnectMs: 60000,
     callTimeoutMs: 2000,
     cachePath: join(scratch, 's5-cache.json'),
@@ -344,7 +350,7 @@ console.log('\nS8  standard mcpServers import: configPaths, inline mapping, prec
   )
 
   const { ctx, tools, disposeAll, warnings } = makeCtx()
-  await apply(ctx, {
+  await applyConfig(ctx, {
     idleDisconnectMs: 60000,
     cachePath: join(scratch, 's8-cache.json'),
     configPaths: [importedPath],
@@ -399,14 +405,14 @@ console.log('\nS8  standard mcpServers import: configPaths, inline mapping, prec
   await disposeAll()
 
   // Error paths must be explicit, not silent.
-  const sseError = await apply(makeCtx().ctx, {
+  const sseError = await applyConfig(makeCtx().ctx, {
     mcpServers: { bad: { type: 'sse', url: 'https://example.com/sse' } },
   }).then(() => null, (error) => error.message)
   check('SSE transport rejected with a clear error', sseError !== null && sseError.includes('SSE'), String(sseError))
 
   // A missing source file is tolerated: an uninstalled Pi must not break DSH.
   const missing = makeCtx()
-  const missingError = await apply(missing.ctx, {
+  const missingError = await applyConfig(missing.ctx, {
     configPaths: ['~/definitely-not-a-real-file.json'],
   }).then(() => null, (error) => error.message)
   check('missing configPaths entry is tolerated', missingError === null, String(missingError))
@@ -419,7 +425,7 @@ console.log('\nS8  standard mcpServers import: configPaths, inline mapping, prec
   // A malformed source file is a real problem and must be loud.
   const badPath = join(scratch, 'broken.json')
   await writeFile(badPath, '{ this is not json', 'utf8')
-  const brokenError = await apply(makeCtx().ctx, { configPaths: [badPath] }).then(
+  const brokenError = await applyConfig(makeCtx().ctx, { configPaths: [badPath] }).then(
     () => null,
     (error) => error.message,
   )
@@ -431,7 +437,7 @@ console.log('\nS8  standard mcpServers import: configPaths, inline mapping, prec
 
   // A stale override is tolerated for the same reason.
   const stale = makeCtx()
-  const staleError = await apply(stale.ctx, {
+  const staleError = await applyConfig(stale.ctx, {
     mcpServers: { only: { command: 'echo' } },
     overrides: { ghost: { lifecycle: 'lazy' } },
   }).then(() => null, (error) => error.message)
@@ -488,7 +494,7 @@ console.log('\nS9  importing a real MCP configuration')
       console.log(`  SKIP  a real config entry is not importable (${unsupported}); fix or remove it to exercise this check`)
     } else {
       const { ctx, tools, disposeAll } = makeCtx()
-      await apply(ctx, {
+      await applyConfig(ctx, {
         idleDisconnectMs: 60000,
         cachePath: join(scratch, 's9-cache.json'),
         configPaths: present,
@@ -528,7 +534,7 @@ console.log('\nS10  cache path resolution with no DSH_* in the process environme
   delete process.env.DSH_HOME
   try {
     const { ctx, tools, disposeAll } = makeCtx()
-    await apply(ctx, { idleDisconnectMs: 60000, servers: [baseServer('s10', 'lazy')] })
+    await applyConfig(ctx, { idleDisconnectMs: 60000, servers: [baseServer('s10', 'lazy')] })
     await callTool(tools, 'mcp_tools', { server: 's10', refresh: true })
     const text = await waitForFile(fallbackPath)
     check('cache written to the ~/.dsh fallback', text !== null, fallbackPath)
@@ -548,7 +554,7 @@ console.log('\nS10  cache path resolution with no DSH_* in the process environme
 console.log('\nS11  MCP resources: list, read, template substitution, binary projection')
 {
   const { ctx, tools, disposeAll } = makeCtx()
-  await apply(ctx, {
+  await applyConfig(ctx, {
     idleDisconnectMs: 60_000,
     servers: [baseServer('s11', 'lazy')],
   })
