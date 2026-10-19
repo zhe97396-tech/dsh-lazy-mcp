@@ -86,3 +86,18 @@ pnpm run check && pnpm run lint && pnpm run verify
 For changes that touch the package identity (`package.json#name`, `client.js`
 module id, `cordis.patch.yml` row name, `dsh-plugin.naming.json`), update all
 four together — `pnpm run lint` fails otherwise.
+
+## Releasing
+
+The market entry points at a version-free asset name so the install link keeps
+working across releases:
+
+```bash
+pnpm pack                                        # dsh-lazy-mcp-<version>.tgz
+cp dsh-lazy-mcp-<version>.tgz dsh-lazy-mcp.tgz
+gh release upload v<version> dsh-lazy-mcp-<version>.tgz dsh-lazy-mcp.tgz
+```
+
+Always attach both names: the versioned tarball is the human-facing artifact,
+and `dsh-lazy-mcp.tgz` is what
+`releases/latest/download/dsh-lazy-mcp.tgz` resolves to.
