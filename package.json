@@ -1,0 +1,66 @@
+{
+  "name": "dsh-lazy-mcp",
+  "version": "0.4.0",
+  "type": "module",
+  "description": "Lazy-loading MCP gateway for DeepSeek Harness: no MCP server starts at boot; a server connects on first use and is dropped after an idle timeout. Bridges MCP tools and resources, and shows live server state in the Web UI.",
+  "keywords": [
+    "dsh-plugin",
+    "deepseek-harness",
+    "dsh",
+    "mcp",
+    "model-context-protocol",
+    "lazy-loading",
+    "gateway"
+  ],
+  "homepage": "https://github.com/zhe97396-tech/dsh-lazy-mcp#readme",
+  "bugs": {
+    "url": "https://github.com/zhe97396-tech/dsh-lazy-mcp/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zhe97396-tech/dsh-lazy-mcp.git"
+  },
+  "license": "MIT",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "cordis.patch.yml",
+    "README.md",
+    "README.zh-CN.md",
+    "CHANGELOG.md",
+    "LICENSE",
+    "dsh-plugin.naming.json",
+    "verify.mjs",
+    "probe-capabilities.mjs",
+    "probe-resources.mjs",
+    "assets/"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "check": "node --check index.js && node --check client.js",
+    "lint": "node scripts/check-package.mjs",
+    "verify": "node verify.mjs",
+    "test": "node verify.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/client": "2.0.0"
+  },
+  "dsh": {
+    "manifestVersion": 1,
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true
+    }
+  }
+}

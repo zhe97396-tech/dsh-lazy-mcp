@@ -1,0 +1,65 @@
+# dsh-lazy-mcp bundle: inserts the gateway row into the profile composition.
+#
+# Unlike one `@deepseek-ai/dsh-mcp-client` row per server (which connects every
+# server at Harness startup and keeps it connected), this row starts nothing at
+# boot. Each server connects on the first tool call that needs it and, under the
+# default `lazy` lifecycle, is disconnected again after `idleDisconnectMs`.
+#
+# This is the bundle's DEFAULT config. A later patch layer (the profile's own
+# cordis.patch.yml) may target `id: lazy-mcp` with its own `config`, which
+# replaces this one wholesale — restate every field you want to keep there.
+
+- insert:
+    - id: lazy-mcp
+      name: dsh-lazy-mcp
+      config:
+        # Disconnect a `lazy` server after this many ms with no activity
+        # (600000 = 10 minutes). Per-server `idleDisconnectMs` overrides it.
+        idleDisconnectMs: 600000
+        # Deadline for one connection plus tool discovery.
+        connectTimeoutMs: 30000
+        # Deadline for one tools/call.
+        callTimeoutMs: 60000
+        # Tool metadata cache. Resolved as: this field, else $DSH_PROFILE_DIR,
+        # else $DSH_HOME, else ~/.dsh — all landing on lazy-mcp/tool-cache.json.
+        # While a server is dormant its cached tool list still answers
+        # mcp_tools, so describing a server does not start it.
+        # cachePath: !!js dshHomePath('lazy-mcp/tool-cache.json')
+
+        # ── MCP servers owned by DSH ──────────────────────────────────────
+        # These are declared here, not imported from another tool's config, so
+        # this file is the single source of truth: deleting Pi's or Claude
+        # Code's config cannot remove a server from DSH.
+        #
+        # Uncomment and edit these, or import an existing setup instead:
+        #   configPaths:
+        #     - '~/.config/mcp/mcp.json'
+        #     - '~/.pi/agent/mcp-adapter.json'
+        # Imported files merge first; an entry here wins on a name clash, and
+        # `disabled: true` removes an imported server entirely.
+        servers: []
+
+        # Example stdio server:
+        #   - name: docs
+        #     transport: stdio
+        #     lifecycle: lazy
+        #     description: Documentation lookup
+        #     command: npx
+        #     args: ['-y', 'some-mcp-server']
+        #     # env: { SOME_TOKEN: '...' }   # merged over the scrubbed env
+        #     # cwd: '/path/to/project'      # optional
+        #     # idleDisconnectMs: 120000     # optional per-server override
+        #
+        # Example streamable-http server:
+        #   - name: knowledge
+        #     transport: streamable-http
+        #     lifecycle: lazy
+        #     description: Internal knowledge base
+        #     url: https://mcp.example.com/rpc
+        #     # headers: { Authorization: !!js '`Bearer ${process.env.MCP_TOKEN}`' }
+        #
+        # Lifecycle: lazy (default) / lazy-keep-alive / eager / keep-alive
+        # Credentials: env values never enter the cache or the logs. Parent
+        #   *KEY*/*TOKEN*/*SECRET*/*PASSWORD* and DSH_* variables are stripped,
+        #   so a secret must be declared in the server's own env (stdio) or
+        #   headers (http).

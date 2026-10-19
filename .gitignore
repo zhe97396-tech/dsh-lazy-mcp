@@ -1,0 +1,15 @@
+# Dependencies and build artifacts
+node_modules/
+.pnpm-store/
+
+# Local pack output
+*.tgz
+
+# Runtime state that may be pointed at the repository during development
+tool-cache.json
+settings.json
+
+# Logs and OS cruft
+*.log
+.DS_Store
+Thumbs.db

@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "policy": "dsh-plugin-naming/v1",
+  "plugin": {
+    "namespace": "zhe97396-tech",
+    "name": "lazy-mcp",
+    "coordinate": "zhe97396-tech/lazy-mcp",
+    "packageName": "dsh-lazy-mcp"
+  },
+  "names": {
+    "pluginNames": ["lazy-mcp"],
+    "loaderIds": ["lazy-mcp"],
+    "services": [],
+    "tools": [
+      "mcp_servers",
+      "mcp_tools",
+      "mcp_call",
+      "mcp_resources",
+      "mcp_read_resource"
+    ],
+    "commands": [],
+    "skills": [],
+    "skillProviders": [],
+    "events": [],
+    "settingsNamespaces": [],
+    "routes": [
+      {
+        "kind": "exact",
+        "path": "/lazy-mcp/state"
+      }
+    ]
+  }
+}
