@@ -13,7 +13,8 @@ First public release.
 
 - Lazy MCP gateway for DeepSeek Harness: MCP servers are connected on first use
   instead of at startup, and disconnected again after an idle window.
-- Four lifecycle modes (`lazy`, `eager`, `pinned`, `disabled`) per server.
+- Four lifecycle modes (`lazy`, `lazy-keep-alive`, `eager`, `keep-alive`) per
+  server.
 - Five model-facing tools: `mcp_servers`, `mcp_tools`, `mcp_call`,
   `mcp_resources`, `mcp_read_resource`.
 - Tool and resource metadata cache, with optional invalidation on config change.
