@@ -5,6 +5,26 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.1] - 2026-11-12
+
+Compatibility declaration and an install instruction that names a version. No
+runtime code changed.
+
+### Added
+
+- `engines.dsh` (`>=0.1.6 <0.4.0`) in `package.json`. DSH compares it with the
+  running version before importing plugin code and warns, instead of loading
+  silently, when a plugin was built for another runtime; runtimes that predate
+  the check ignore the field. Verified against DSH 0.2.2-rc.2, where the
+  declared range matches and no warning is produced.
+
+### Changed
+
+- Install instructions now use the versioned release asset
+  (`.../releases/download/v0.4.1/dsh-lazy-mcp-0.4.1.tgz`) instead of the mutable
+  `releases/latest/download/dsh-lazy-mcp.tgz` alias, which profiles record
+  verbatim and therefore cannot distinguish one version from another.
+
 ## [0.4.0] - 2026-10-19
 
 First public release.
@@ -39,4 +59,5 @@ First public release.
   carrying the author's local MCP servers. Add your own servers in the plugin
   configuration (see the README examples).
 
+[0.4.1]: https://github.com/zhe97396-tech/dsh-lazy-mcp/releases/tag/v0.4.1
 [0.4.0]: https://github.com/zhe97396-tech/dsh-lazy-mcp/releases/tag/v0.4.0

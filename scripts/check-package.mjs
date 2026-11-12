@@ -48,6 +48,11 @@ check('license declared', typeof pkg.license === 'string' && pkg.license.length 
 check('LICENSE file exists', existsSync(join(root, 'LICENSE')))
 check('repository points at GitHub', /^git\+https:\/\/github\.com\/.+\/.+\.git$/.test(pkg.repository?.url ?? ''), pkg.repository?.url)
 check('engines.node declared', typeof pkg.engines?.node === 'string')
+check(
+  'engines.dsh declared as a range',
+  typeof pkg.engines?.dsh === 'string' && /^[<>~^=]|\d/.test(pkg.engines.dsh),
+  pkg.engines?.dsh
+)
 
 for (const file of pkg.files ?? []) {
   if (file.endsWith('/')) continue

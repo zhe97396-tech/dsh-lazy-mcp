@@ -1,6 +1,6 @@
 {
   "name": "dsh-lazy-mcp",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "type": "module",
   "description": "Lazy-loading MCP gateway for DeepSeek Harness: no MCP server starts at boot; a server connects on first use and is dropped after an idle timeout. Bridges MCP tools and resources, and shows live server state in the Web UI.",
   "keywords": [
@@ -42,7 +42,8 @@
     "assets/"
   ],
   "engines": {
-    "node": ">=20"
+    "node": ">=20",
+    "dsh": ">=0.1.6 <0.4.0"
   },
   "scripts": {
     "check": "node --check index.js && node --check client.js",

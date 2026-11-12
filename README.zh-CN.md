@@ -36,15 +36,27 @@
 
 要求：Node.js 20 或更高版本，以及一个 DSH profile（通常用 Web profile）。本包**不依赖任何 `@deepseek-ai/*` 包**，因此 Harness 的 peer-range 变化不会把它弄坏；它唯一的运行时依赖是 MCP TypeScript 客户端 SDK，也就是官方桥接所用的同一个 SDK。
 
-### 方案 A — 从 GitHub 安装
+本包用 `engines.dsh`（`>=0.1.6 <0.4.0`）声明它支持的 Harness 范围。DSH 在导入任何插件代码之前先拿运行版本比对这个范围：不匹配时会警告该插件可能导致崩溃或数据丢失，并要求先给出精确版本豁免（`dsh plugin allow-version`）才能安装或重启。更老的运行时不认识这个字段，直接忽略。
+
+请安装**带版本号**的 tarball，而不是 `releases/latest/download/…` 这个别名。profile 会原样记录安装 spec，可变别名等于没有锁定版本：已有 profile 保留它当初下载的字节，新安装拿到更新的代码，而两者的依赖写法一模一样。带版本号的资产才能让你说得清装的是什么。
+
+### 方案 A — 安装固定版本的 release tarball
+
+```sh
+dsh plugin --profile web add https://github.com/zhe97396-tech/dsh-lazy-mcp/releases/download/v0.4.1/dsh-lazy-mcp-0.4.1.tgz
+```
+
+然后**重启 `dsh web`**。Host 半边和浏览器半边都从已安装的包加载，而运行中的 Harness 不重启就无法拾取刚安装的模块。
+
+### 方案 B — 从 GitHub 安装
 
 ```sh
 dsh plugin --profile web add github:zhe97396-tech/dsh-lazy-mcp
 ```
 
-然后**重启 `dsh web`**。Host 半边和浏览器半边都从已安装的包加载，而运行中的 Harness 不重启就无法拾取刚安装的模块。
+这条跟的是默认分支而不是某个 release，只适合跟随开发。
 
-### 方案 B — 安装 release tarball
+### 方案 C — 安装已下载的 tarball
 
 从 [Releases](https://github.com/zhe97396-tech/dsh-lazy-mcp/releases) 页面下载 `dsh-lazy-mcp-<version>.tgz`，通过插件管理器安装（或 `dsh plugin --profile web add ./dsh-lazy-mcp-<version>.tgz`），然后重启 `dsh web`。
 

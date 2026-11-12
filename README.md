@@ -36,15 +36,27 @@ This gateway starts nothing at boot.
 
 Requirements: Node.js 20 or newer and a DSH profile (the Web profile is the usual one). The package has **no `@deepseek-ai/*` dependency**, so a Harness peer-range change cannot break it; its single runtime dependency is the MCP TypeScript client SDK, the same SDK the official bridge uses.
 
-### Option A — install from GitHub
+The package declares its supported Harness range in `engines.dsh` (`>=0.1.6 <0.4.0`). DSH checks that range against the running version before it imports any plugin code: a mismatch prints a warning that the plugin may crash or lose data and needs an exact-version exemption (`dsh plugin allow-version`) before the install or restart proceeds. Runtimes older than the check simply ignore the field.
+
+Install a **versioned** tarball, not the `releases/latest/download/…` alias. A profile records the install spec verbatim, so the mutable alias pins no version: an existing profile keeps whatever bytes it downloaded while a new install gets newer code, and both report the same dependency. The versioned asset keeps what you installed identifiable.
+
+### Option A — install a pinned release tarball
+
+```sh
+dsh plugin --profile web add https://github.com/zhe97396-tech/dsh-lazy-mcp/releases/download/v0.4.1/dsh-lazy-mcp-0.4.1.tgz
+```
+
+Then **restart `dsh web`**. The Host half and the browser half are both loaded from the installed package, and a running Harness cannot pick up a freshly installed module without a restart.
+
+### Option B — install from GitHub
 
 ```sh
 dsh plugin --profile web add github:zhe97396-tech/dsh-lazy-mcp
 ```
 
-Then **restart `dsh web`**. The Host half and the browser half are both loaded from the installed package, and a running Harness cannot pick up a freshly installed module without a restart.
+This tracks the default branch rather than a release, so it is the right choice only for following development.
 
-### Option B — install a release tarball
+### Option C — install a downloaded tarball
 
 Download `dsh-lazy-mcp-<version>.tgz` from the [Releases](https://github.com/zhe97396-tech/dsh-lazy-mcp/releases) page and install it through the plugin manager (or `dsh plugin --profile web add ./dsh-lazy-mcp-<version>.tgz`), then restart `dsh web`.
 
